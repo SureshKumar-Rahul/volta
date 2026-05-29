@@ -8,7 +8,7 @@ Volta keeps the language model out of the arithmetic. Picking the profit-maximiz
 
 ```mermaid
 flowchart LR
-    E[ENTSO-E API] --> P[Data pipeline<br/>prices, load, gen mix]
+    E[ENTSO-E API] --> P[Data pipeline<br/>day-ahead prices]
     P --> S[(Local store<br/>SQLite)]
     S --> A
     subgraph A [Reasoning agent]

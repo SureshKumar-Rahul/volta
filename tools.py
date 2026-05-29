@@ -8,13 +8,14 @@ from dataclasses import asdict
 import storage
 from optimizer import optimize_dispatch
 from simulate import simulate_soc
+from strategies import naive_forecast
 
 
 def make_tools(conn, battery):
     def get_forecast(date_str):
         """Naive forecast: the previous day's realized prices."""
         prev = (dt.date.fromisoformat(date_str) - dt.timedelta(days=1)).isoformat()
-        prices = storage.get_prices_for_date(conn, prev)
+        prices = naive_forecast(storage.get_prices_for_date(conn, prev))
         return {"date": date_str, "forecast_source": prev, "prices": prices}
 
     def get_battery_state():
