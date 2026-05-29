@@ -1,6 +1,6 @@
 # Volta
 
-An agent that trades a grid battery on the day-ahead electricity market. It reads real European prices, decides when to charge and discharge to earn money on the daily price spread, and gets scored against the best a perfect forecast could have done.
+An agent that trades a grid battery on the day-ahead electricity market. It reads European day-ahead prices, decides when to charge and discharge to earn money on the daily price spread, and gets scored against the best a perfect forecast could have done.
 
 Volta keeps the language model out of the arithmetic. Picking the profit-maximizing schedule for a known price curve is a solved optimization problem, so the model does not choose megawatts directly. It handles the part where judgment helps, reading the day and deciding whether and how hard to trade, and it calls a linear-program optimizer as a tool for the math.
 
@@ -67,6 +67,8 @@ These are on 29 scorable days of synthetic day-ahead prices with realistic day-t
 | Agent (LP on the naive forecast) | 5,815 | 61.1% |
 | Threshold heuristic | 4,464 | 46.9% |
 | Do nothing | 0 | 0% |
+
+![Daily revenue per strategy across the 29 synthetic backtest days. The agent (orange) sits between the perfect-foresight optimum and the threshold heuristic.](revenue.png)
 
 The optimum and the two baselines need no model and are computed directly. The threshold heuristic plans on the same forecast the agent sees rather than peeking at realized prices. That makes it a fair bar, and it is why it sits at 46.9% instead of the higher number a price-foresight version would post. The agent runs the optimizer on that same forecast and reaches 61.1%, well clear of the heuristic. The rest of the gap is forecast error, and a better forecaster dropped in where the naive one sits is what closes it. The baselines here are reproducible offline; the agent figure is from a keyed backtest run over the same 29 days.
 
