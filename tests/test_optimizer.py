@@ -31,3 +31,13 @@ def test_power_limit_caps_trade():
     schedule, revenue = optimize_dispatch([10.0, 50.0], b, cyclic=False)
     assert schedule[0] == pytest.approx(-4.0, abs=1e-4)
     assert revenue == pytest.approx(50.0 * 4 - 10.0 * 4, abs=1e-4)
+
+
+def test_negative_prices_yield_valid_schedule():
+    # Negative prices must not produce simultaneous charge+discharge. The returned
+    # schedule must be physically valid (passes the SOC simulator).
+    from simulate import is_valid
+    b = BatteryConfig()  # defaults, round-trip efficiency 0.9
+    prices = [-5.0, -10.0, 80.0, 90.0, -5.0, -10.0, 80.0, 90.0] + [40.0] * 16
+    schedule, revenue = optimize_dispatch(prices, b, cyclic=True)
+    assert is_valid(schedule, b) is True
