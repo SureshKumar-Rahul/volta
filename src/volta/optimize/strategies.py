@@ -1,8 +1,8 @@
 # strategies.py
 """Baselines to beat and the naive forecast the agent plans against."""
 
-from config import BatteryConfig
-from simulate import is_valid, score_schedule
+from volta.config import BatteryConfig
+from volta.optimize.simulate import is_valid, score_schedule
 
 
 def do_nothing_schedule(n: int) -> list:
@@ -18,8 +18,9 @@ def threshold_schedule(prices, battery: BatteryConfig) -> list:
     """A naive price-rank arbitrage baseline. Charge during the cheapest hours and
     discharge during the dearest, moving the same grid energy each way so the day is
     energy-neutral around the starting charge, and only trade when the spread is
-    actually profitable. Simple and beatable, but it never loses money. Meant as a
-    baseline for the agent to clear."""
+    actually profitable. Simple and beatable, and it never loses money on the prices
+    it is given. The backtester feeds it the forecast, so it can still come out behind
+    once it is paid on realized prices, the same forecast risk the agent runs."""
     n = len(prices)
     if n == 0:
         return []

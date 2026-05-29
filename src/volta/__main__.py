@@ -12,8 +12,8 @@ for fetch. Keys are read from the environment only."""
 import argparse
 import sqlite3
 
-import storage
-from config import DB_PATH, default_battery
+from volta.config import DB_PATH, default_battery
+from volta.market import storage
 
 
 def _conn():
@@ -24,25 +24,25 @@ def _conn():
 
 
 def cmd_fetch(args):
-    from pipeline import fetch_entsoe
+    from volta.market.pipeline import fetch_entsoe
     conn = _conn()
     fetch_entsoe(conn, args.start, args.end)
     print(f"Fetched. Dates in store: {len(storage.get_dates(conn))}")
 
 
 def cmd_sample(args):
-    from pipeline import load_sample_into_db
+    from volta.market.pipeline import load_sample_into_db
     conn = _conn()
     load_sample_into_db(conn, args.start, args.days)
     print(f"Loaded {args.days} synthetic days. Dates in store: {len(storage.get_dates(conn))}")
 
 
 def cmd_backtest(args):
-    from agent import run_agent
-    from tools import make_tools
-    from backtester import run_backtest
-    from report import write_report
-    from llm import get_client_and_model
+    from volta.agent.agent import run_agent
+    from volta.agent.tools import make_tools
+    from volta.eval.backtester import run_backtest
+    from volta.eval.report import write_report
+    from volta.agent.llm import get_client_and_model
 
     conn = _conn()
     battery = default_battery()
@@ -53,16 +53,16 @@ def cmd_backtest(args):
     def agent_fn(date_str):
         return run_agent(date_str, tools, client=client, model=model)
 
-    summary, day_results = run_backtest(conn, battery, dates, agent_fn, log=True)
+    summary, day_results = run_backtest(conn, battery, dates, agent_fn, log=True, progress=True)
     write_report(summary, day_results)
     print(f"Agent captured {summary['pct_of_optimum']:.1f}% of optimum over "
           f"{summary['days']} days. Report written to results.md.")
 
 
 def cmd_today(args):
-    from agent import run_agent
-    from tools import make_tools
-    from llm import get_client_and_model
+    from volta.agent.agent import run_agent
+    from volta.agent.tools import make_tools
+    from volta.agent.llm import get_client_and_model
 
     conn = _conn()
     battery = default_battery()

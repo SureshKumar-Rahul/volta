@@ -1,8 +1,8 @@
 # tests/test_simulate.py
 import pytest
 
-from config import BatteryConfig
-from simulate import simulate_soc, is_valid, score_schedule
+from volta.config import BatteryConfig
+from volta.optimize.simulate import simulate_soc, is_valid, score_schedule
 
 
 def test_score_schedule_sign():

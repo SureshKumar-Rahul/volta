@@ -1,7 +1,7 @@
 import json
 import types
 
-from agent import run_agent
+from volta.agent.agent import run_agent
 
 
 def _msg(content=None, tool_calls=None):

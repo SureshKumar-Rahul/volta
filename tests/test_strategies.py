@@ -1,9 +1,9 @@
 # tests/test_strategies.py
 import pytest
 
-from config import BatteryConfig
-from strategies import do_nothing_schedule, threshold_schedule, naive_forecast
-from simulate import is_valid, score_schedule
+from volta.config import BatteryConfig
+from volta.optimize.strategies import do_nothing_schedule, threshold_schedule, naive_forecast
+from volta.optimize.simulate import is_valid, score_schedule
 
 
 def test_do_nothing_is_zeros():

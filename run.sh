@@ -15,9 +15,9 @@ cmd="${1:-backtest}"
 shift || true
 
 case "$cmd" in
-  sample)   "$py" main.py sample --start "${1:-2025-01-01}" --days "${2:-60}" ;;
-  fetch)    "$py" main.py fetch --start "${1:?need a start date}" --end "${2:?need an end date}" ;;
-  backtest) "$py" main.py backtest ;;
-  today)    "$py" main.py today --date "${1:?need a date}" ;;
+  sample)   "$py" -m volta sample --start "${1:-2025-01-01}" --days "${2:-60}" ;;
+  fetch)    "$py" -m volta fetch --start "${1:?need a start date}" --end "${2:?need an end date}" ;;
+  backtest) "$py" -m volta backtest ;;
+  today)    "$py" -m volta today --date "${1:?need a date}" ;;
   *) echo "usage: ./run.sh [sample|fetch|backtest|today] ..." >&2; exit 1 ;;
 esac

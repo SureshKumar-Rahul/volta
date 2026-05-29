@@ -7,7 +7,7 @@ optimum; run on a forecast it is the agent's planning tool."""
 
 import pulp
 
-from config import BatteryConfig
+from volta.config import BatteryConfig
 
 
 def optimize_dispatch(prices, battery: BatteryConfig, cyclic: bool = True):

@@ -5,7 +5,7 @@ last optimizer result it endorsed, so the model never has to echo 24 numbers."""
 
 import json
 
-from prompts import SYSTEM_PROMPT, TOOL_SCHEMAS
+from volta.agent.prompts import SYSTEM_PROMPT, TOOL_SCHEMAS
 
 MAX_STEPS = 8
 HOURS = 24
@@ -18,7 +18,7 @@ def run_agent(date_str, tools, client=None, model=None):
     client/model: an OpenAI-compatible client and model name. If client is None,
     one is built from llm.get_client_and_model()."""
     if client is None:
-        from llm import get_client_and_model
+        from volta.agent.llm import get_client_and_model
         client, model = get_client_and_model()
 
     messages = [

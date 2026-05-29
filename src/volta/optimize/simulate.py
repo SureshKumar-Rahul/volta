@@ -2,7 +2,7 @@
 """Replay a schedule to track state of charge, check validity, and score revenue.
 Uses the same sign convention and efficiency model as the optimizer."""
 
-from config import BatteryConfig
+from volta.config import BatteryConfig
 
 TOL = 1e-6
 

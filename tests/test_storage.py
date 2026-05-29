@@ -1,6 +1,6 @@
 # tests/test_storage.py
 import sqlite3
-import storage
+from volta.market import storage
 
 
 def test_roundtrip_prices_for_date():
@@ -33,8 +33,8 @@ def test_get_dates_sorted():
 
 def test_sample_loader_fills_n_days():
     import sqlite3
-    import storage
-    from pipeline import load_sample_into_db
+    from volta.market import storage
+    from volta.market.pipeline import load_sample_into_db
     conn = sqlite3.connect(":memory:")
     storage.init_db(conn)
     load_sample_into_db(conn, start_date="2025-01-01", days=3)

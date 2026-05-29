@@ -1,8 +1,8 @@
 # tests/test_optimizer.py
 import pytest
 
-from config import BatteryConfig
-from optimizer import optimize_dispatch
+from volta.config import BatteryConfig
+from volta.optimize.optimizer import optimize_dispatch
 
 
 def test_simple_arbitrage_lossless():
@@ -36,7 +36,7 @@ def test_power_limit_caps_trade():
 def test_negative_prices_yield_valid_schedule():
     # Negative prices must not produce simultaneous charge+discharge. The returned
     # schedule must be physically valid (passes the SOC simulator).
-    from simulate import is_valid
+    from volta.optimize.simulate import is_valid
     b = BatteryConfig()  # defaults, round-trip efficiency 0.9
     prices = [-5.0, -10.0, 80.0, 90.0, -5.0, -10.0, 80.0, 90.0] + [40.0] * 16
     schedule, revenue = optimize_dispatch(prices, b, cyclic=True)

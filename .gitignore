@@ -5,8 +5,14 @@ __pycache__/
 venv/
 data/
 mlruns/
+mlflow.db
 *.png
 results.md
+
+# Packaging artifacts
+*.egg-info/
+build/
+dist/
 
 # Private project files, kept out of the public repo
 docs/

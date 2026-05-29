@@ -53,4 +53,7 @@ def get_client_and_model():
         hint = (PROVIDERS.get(provider) or {}).get("key_env") or "LLM_API_KEY"
         raise SystemExit(f"No API key for provider '{provider}'. Set {hint} (or "
                          f"LLM_API_KEY) as a process-scoped environment variable.")
-    return OpenAI(base_url=base_url, api_key=key), model
+    # Bound each request so a slow or hung provider fails loudly instead of
+    # blocking the whole backtest with no output. Override with LLM_TIMEOUT.
+    timeout = float(os.environ.get("LLM_TIMEOUT", "60"))
+    return OpenAI(base_url=base_url, api_key=key, timeout=timeout), model

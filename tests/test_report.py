@@ -1,7 +1,7 @@
 # tests/test_report.py
 import os
 
-from report import write_report
+from volta.eval.report import write_report
 
 
 def test_write_report_creates_files(tmp_path):
