@@ -7,3 +7,8 @@ data/
 mlruns/
 *.png
 results.md
+
+# Private project files, kept out of the public repo
+docs/
+CLAUDE.md
+run.local.sh

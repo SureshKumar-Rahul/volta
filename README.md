@@ -52,17 +52,21 @@ python -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Load data, then backtest. The synthetic loader needs no key and no network:
+Use the `run.sh` wrapper. Load data first (the synthetic loader needs no key and runs offline), then backtest:
 
 ```bash
-.venv/bin/python main.py sample --start 2025-01-01 --days 60     # synthetic, offline
-.venv/bin/python main.py fetch  --start 2025-01-01 --end 2025-04-01   # real DE-LU, needs ENTSOE_API_TOKEN
+./run.sh sample                                       # 60 synthetic days, offline
+LLM_PROVIDER=groq GROQ_API_KEY=your-key ./run.sh backtest
+LLM_PROVIDER=groq GROQ_API_KEY=your-key ./run.sh today 2025-01-15
 ```
 
+For real prices, request a free ENTSO-E token (see below) and fetch:
+
 ```bash
-LLM_PROVIDER=groq GROQ_API_KEY=your-key .venv/bin/python main.py backtest
-LLM_PROVIDER=groq GROQ_API_KEY=your-key .venv/bin/python main.py today --date 2025-01-15
+ENTSOE_API_TOKEN=your-token ./run.sh fetch 2025-01-01 2025-04-01
 ```
+
+`run.sh` just wraps `python main.py`, so you can call the CLI directly if you prefer.
 
 Keys are read from the environment and from nowhere else. There is no `.env` file and no on-disk secret. Pass a key on the same line so it stays in that one process. If you keep keys in a secret manager, fetch at run time, for example with Bitwarden:
 
