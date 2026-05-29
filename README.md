@@ -112,11 +112,11 @@ The ENTSO-E token is free: register on the Transparency Platform, then email tra
 
 Real: the market structure (DE-LU hourly day-ahead), the optimization, the no-lookahead backtest, the agent loop and its tools.
 
-Simplified, on purpose: the forecast is naive (it uses a recent comparable day rather than a learned model), the battery is a config-driven model rather than real hardware, and only the day-ahead market is covered, not intraday or balancing. There is no live trading.
+Simplified, on purpose: the forecast is naive (it reuses the previous day's prices rather than a learned model), the battery is a config-driven model rather than real hardware, and only the day-ahead market is covered, not intraday or balancing. There is no live trading.
 
-Next steps: a learned price forecaster, then calibrated uncertainty on top of it. The forecast is the single seam in `market/forecast.py`, so a learned model drops in where the naive one is now. A regularized linear LEAR model or gradient-boosted trees on price lags, calendar features, and load and renewable forecasts would be the first move, and on real data the load and renewable forecasts matter more than the price history itself.
+Next steps: a learned price forecaster, then calibrated uncertainty on top of it. The forecast is the single seam in `market/forecast.py`, so a learned model drops in where the naive one is now. The first move would be a regularized linear model (LEAR) or gradient-boosted trees, trained on price lags, calendar features, and load and renewable forecasts. On real data those load and renewable forecasts matter more than the price history.
 
-After that, recent work on conformal prediction for time series, such as adaptive conformal inference and ensemble batch prediction intervals, can wrap that model to produce calibrated prediction intervals under the distribution shift that plain conformal prediction does not handle. That gives the agent uncertainty it can act on: cycle hard when the spread is confidently large, and hold or trade lightly when the day is uncertain. Using it fully means moving the optimizer from a single point forecast toward stochastic or robust optimization over scenarios. Each of these steps is measured the same way, by how much of the perfect-foresight optimum it captures.
+After that, conformal prediction adapted for time series (adaptive conformal inference, ensemble batch prediction intervals) can wrap that model to give calibrated prediction intervals that survive the distribution shift plain conformal prediction does not handle. The agent could then act on uncertainty: cycle hard when the spread is confidently large, and hold or trade lightly when the day is uncertain. Using it fully means moving the optimizer from a single point forecast toward stochastic or robust optimization over scenarios. Each step is measured the same way, by how much of the perfect-foresight optimum it captures.
 
 ## Tests
 
