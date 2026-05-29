@@ -26,3 +26,18 @@ def test_threshold_schedule_flat_prices_no_trade():
     b = BatteryConfig()
     sched = threshold_schedule([50.0] * 24, b)
     assert sched == [0.0] * 24
+
+
+def test_threshold_is_energy_neutral_and_never_loses():
+    # On a realistic single-trough single-peak day the baseline must be valid,
+    # move equal grid energy in and out (neutral around the start), and not lose money.
+    b = BatteryConfig()
+    prices = [float(x) for x in
+              [30, 28, 26, 25, 27, 35, 55, 75, 80, 72, 64, 60,
+               58, 62, 68, 76, 88, 95, 90, 78, 64, 52, 42, 36]]
+    sched = threshold_schedule(prices, b)
+    assert is_valid(sched, b) is True
+    charged = -sum(s for s in sched if s < 0)
+    discharged = sum(s for s in sched if s > 0)
+    assert charged == pytest.approx(discharged, abs=1e-6)
+    assert score_schedule(sched, prices) >= 0.0
