@@ -2,7 +2,7 @@
 
 An agent that trades a grid battery on the day-ahead electricity market. It reads real European prices, decides when to charge and discharge to earn money on the daily price spread, and gets scored against the best a perfect forecast could have done.
 
-The interesting choice is where the language model sits. Picking the profit-maximizing schedule for a known price curve is a solved optimization problem, so an LLM should not be choosing megawatts directly. Volta puts the model where judgment actually helps: it reads the day, decides whether and how hard to trade, and calls a linear-program optimizer as a tool for the math. The agent reasons and orchestrates. The solver computes.
+Volta keeps the language model out of the arithmetic. Picking the profit-maximizing schedule for a known price curve is a solved optimization problem, so the model does not choose megawatts directly. It handles the part where judgment helps, reading the day and deciding whether and how hard to trade, and it calls a linear-program optimizer as a tool for the math.
 
 ## How it works
 
@@ -28,7 +28,7 @@ For each day the agent gets a price forecast (it only ever sees past days, never
 - **Data pipeline** (`pipeline.py`): pulls DE-LU day-ahead prices from the ENTSO-E Transparency Platform into SQLite. Ships with a deterministic synthetic generator so the whole system runs offline before you have an API token.
 - **Inference layer** (`llm.py`): the OpenAI SDK pointed at any OpenAI-compatible provider, chosen by an environment variable. Groq, OpenAI, Anthropic, Google, a local Ollama server, and the ScaDS.AI gateway all work without code changes.
 - **Optimizer** (`optimizer.py`): a linear program (PuLP) that returns the revenue-maximizing charge and discharge schedule for a price series, respecting capacity, power, efficiency, and state-of-charge limits. A binary per-hour mode variable stops the battery from charging and discharging in the same hour, which keeps schedules physical even when prices go negative.
-- **Agent** (`agent.py`): a plain Python ReAct loop. No framework. It calls the tools, reasons, and ends on a single decision line.
+- **Agent** (`agent.py`): a plain Python ReAct loop with no framework. It calls the tools, reasons, and ends on a single decision line.
 - **Backtester** (`backtester.py`): replays days with no lookahead, scores every strategy on realized prices, and logs each run to MLflow.
 
 ## Results
@@ -81,7 +81,7 @@ Real: the market structure (DE-LU hourly day-ahead), the optimization, the no-lo
 
 Simplified, on purpose: the forecast is naive (it uses a recent comparable day rather than a learned model), the battery is a config-driven model rather than real hardware, and only the day-ahead market is covered, not intraday or balancing. There is no live trading.
 
-Next step: a learned price forecaster. The agent and backtest are built so a better forecast drops in where the naive one is now, and the gap to the perfect-foresight optimum is exactly the room a forecaster has to earn.
+Next step: a learned price forecaster. The agent and backtest are built so a better forecast drops in where the naive one is now, and the gap to the perfect-foresight optimum is the room a better forecast has to earn.
 
 ## Tests
 
