@@ -62,6 +62,7 @@ def run_agent(date_str, tools, client=None, model=None):
             if action == "trade" and last_schedule is not None:
                 schedule = last_schedule
             else:
+                action = "hold"  # nothing to commit means we held, whatever was said
                 schedule = [0.0] * HOURS
             return {"date": date_str, "action": action, "schedule": schedule,
                     "rationale": final, "trace": trace}

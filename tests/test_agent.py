@@ -50,3 +50,15 @@ def test_hold_commits_zeros():
     result = run_agent("2025-01-02", tools, client=client, model="x")
     assert result["action"] == "hold"
     assert result["schedule"] == [0.0] * 24
+
+
+def test_trade_without_optimizer_falls_back_to_hold():
+    # If the model says trade but never ran the optimizer, there is nothing to
+    # commit, so the recorded action must be hold with a zero schedule.
+    tools = {"get_forecast": lambda date_str: {"prices": [30.0] * 24}}
+    client = FakeClient([
+        _msg(content="FINAL: trade - but I never produced a schedule."),
+    ])
+    result = run_agent("2025-01-02", tools, client=client, model="x")
+    assert result["action"] == "hold"
+    assert result["schedule"] == [0.0] * 24
