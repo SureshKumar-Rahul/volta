@@ -59,18 +59,20 @@ tests/             one module per component, no API key needed
 
 ## Results
 
-These are on 29 scorable days of synthetic day-ahead prices with realistic day-to-day variation, so yesterday's curve is only a rough guide to today's. The earliest day has no prior day to forecast from and is skipped. Real DE-LU numbers will replace these once the ENTSO-E API token is in hand.
+These are on 89 scorable days of real DE-LU day-ahead prices from March to May 2026. The earliest day has no prior day to forecast from, and the late-March daylight-saving changeover is a 23-hour day, so both are skipped.
 
 | Strategy | Total revenue (EUR) | Share of optimum |
 | --- | --- | --- |
-| Perfect-foresight optimum | 9,514 | 100% |
-| Agent (LP on the naive forecast) | 5,815 | 61.1% |
-| Threshold heuristic | 4,464 | 46.9% |
+| Perfect-foresight optimum | 135,349 | 100% |
+| Agent (LP on the naive forecast) | 123,832 | 91.5% |
+| Threshold heuristic | 59,467 | 43.9% |
 | Do nothing | 0 | 0% |
 
-![Daily revenue per strategy across the 29 synthetic backtest days. The agent (orange) sits between the perfect-foresight optimum and the threshold heuristic.](revenue.png)
+![Daily revenue per strategy across the 89 DE-LU backtest days. The agent (orange) tracks the perfect-foresight optimum (blue) closely and sits well above the threshold heuristic (green).](revenue.png)
 
-The optimum and the two baselines need no model and are computed directly. The threshold heuristic plans on the same forecast the agent sees rather than peeking at realized prices. That makes it a fair bar, and it is why it sits at 46.9% instead of the higher number a price-foresight version would post. The agent runs the optimizer on that same forecast and reaches 61.1%, well clear of the heuristic. The rest of the gap is forecast error, and a better forecaster dropped in where the naive one sits is what closes it. The baselines here are reproducible offline; the agent figure is from a keyed backtest run over the same 29 days.
+The optimum and the two baselines need no model and are computed directly. The agent plans on the naive forecast, yesterday's prices, runs the LP on it, and is paid on the prices that actually arrived. On this market and period the daily price shape carries over well from one day to the next, so that naive plan already captures 91.5% of perfect foresight. The threshold heuristic plans on the same forecast but is a conservative, energy-neutral price-rank rule, which is why it reaches 43.9% while the full LP on the same information reaches 91.5%.
+
+The agent's revenue matches the deterministic LP-on-forecast figure to the euro. Given a single point forecast, the best the agent can do is run the optimizer and commit the schedule, which it did every day. The remaining 8.5 points to the optimum are forecast error. A learned forecaster narrows that gap, though on day-ahead prices this persistent the headroom from arbitrage alone is modest; acting on forecast uncertainty and trading beyond the day-ahead market are where the larger gains sit. The baselines are reproducible offline; the agent figure is from a keyed backtest over the same 89 days.
 
 ## Running it
 
