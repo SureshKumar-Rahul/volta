@@ -10,6 +10,7 @@ Needs an LLM provider key for backtest/today (see llm.py) and ENTSOE_API_TOKEN
 for fetch. Keys are read from the environment only."""
 
 import argparse
+import os
 import sqlite3
 
 from volta.config import DB_PATH, default_battery
@@ -41,7 +42,7 @@ def cmd_backtest(args):
     from volta.agent.agent import run_agent
     from volta.agent.tools import make_tools
     from volta.eval.backtester import run_backtest
-    from volta.eval.report import write_report
+    from volta.eval.report import report_paths, write_report
     from volta.agent.llm import get_client_and_model
 
     conn = _conn()
@@ -53,10 +54,13 @@ def cmd_backtest(args):
     def agent_fn(date_str):
         return run_agent(date_str, tools, client=client, model=model)
 
-    summary, day_results = run_backtest(conn, battery, dates, agent_fn, log=True, progress=True)
-    write_report(summary, day_results)
+    forecaster = os.environ.get("VOLTA_FORECASTER", "naive")
+    md_path, chart_path = report_paths(forecaster)
+    summary, day_results = run_backtest(conn, battery, dates, agent_fn, log=True,
+                                        run_name=f"volta-{forecaster.lower()}", progress=True)
+    write_report(summary, day_results, md_path=md_path, chart_path=chart_path)
     print(f"Agent captured {summary['pct_of_optimum']:.1f}% of optimum over "
-          f"{summary['days']} days. Report written to results.md.")
+          f"{summary['days']} days. Report written to {md_path}.")
 
 
 def cmd_today(args):

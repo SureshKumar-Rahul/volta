@@ -6,6 +6,17 @@ matplotlib.use("Agg")  # headless
 import matplotlib.pyplot as plt
 
 
+def report_paths(forecaster):
+    """Output file paths for a backtest run, keyed by the active forecaster. The
+    default (naive) forecaster keeps the canonical results.md / revenue.png that the
+    README references; any other forecaster writes to its own files so an A/B run does
+    not overwrite the baseline."""
+    name = (forecaster or "naive").lower()
+    if name == "naive":
+        return "results.md", "revenue.png"
+    return f"results.{name}.md", f"revenue.{name}.png"
+
+
 def write_report(summary, day_results, md_path="results.md", chart_path="revenue.png"):
     _write_chart(day_results, chart_path)
     _write_markdown(summary, day_results, md_path, chart_path)

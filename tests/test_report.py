@@ -1,7 +1,19 @@
 # tests/test_report.py
 import os
 
-from volta.eval.report import write_report
+from volta.eval.report import report_paths, write_report
+
+
+def test_naive_forecaster_keeps_canonical_paths():
+    # The naive run owns results.md / revenue.png, the files the README references.
+    assert report_paths("naive") == ("results.md", "revenue.png")
+    assert report_paths(None) == ("results.md", "revenue.png")
+
+
+def test_other_forecaster_gets_its_own_paths():
+    # Any non-naive forecaster writes to its own files so runs do not overwrite.
+    assert report_paths("lear") == ("results.lear.md", "revenue.lear.png")
+    assert report_paths("LEAR") == ("results.lear.md", "revenue.lear.png")
 
 
 def test_write_report_creates_files(tmp_path):

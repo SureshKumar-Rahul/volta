@@ -8,7 +8,7 @@ mlruns/
 mlflow.db
 *.png
 !revenue.png
-results.md
+results*.md
 
 # Packaging artifacts
 *.egg-info/
