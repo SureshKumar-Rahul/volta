@@ -72,6 +72,37 @@ def test_learns_weekly_structure_and_beats_naive():
     assert lear_mae < naive_mae / 3  # and is decisively better
 
 
+def test_no_convergence_warning_on_spiky_prices():
+    # Real day-ahead prices are spiky and their lagged features are collinear, which
+    # makes a plain LASSO on raw prices fail to converge. The variance-stabilizing
+    # transform should fit cleanly with no ConvergenceWarning.
+    import warnings
+
+    import numpy as np
+    from sklearn.exceptions import ConvergenceWarning
+
+    conn = sqlite3.connect(":memory:")
+    storage.init_db(conn)
+    rng = np.random.default_rng(0)
+    level = [0.0]
+
+    def hard(day):
+        level[0] += rng.normal(0, 8)        # random walk -> strongly collinear lags
+        pr = [level[0] + s + rng.normal(0, 6) for s in _SHAPE]
+        if rng.random() < 0.4:              # frequent large evening spikes
+            h = int(rng.integers(17, 21))
+            pr[h] += rng.uniform(150, 400)
+        return [max(0.0, x) for x in pr]
+
+    _seed(conn, "2025-01-01", 70, hard)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        out = lear_forecast(conn, "2025-03-12")
+    convergence = [w for w in caught if issubclass(w.category, ConvergenceWarning)]
+    assert len(out) == 24
+    assert convergence == []
+
+
 def test_forecast_does_not_use_future_data():
     # A backtest forecast must depend only on days before the target. Adding or
     # changing prices on and after the target date must not move the forecast.

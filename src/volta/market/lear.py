@@ -11,6 +11,12 @@ lags 1, 2, 3, and 7 (yesterday, the two days before, and the same weekday last w
 plus a day-of-week one-hot. Each hour gets its own LASSO, which selects from those
 lagged prices the ones that matter for that hour. Training uses only days strictly
 before the target, so there is no lookahead.
+
+Prices are fit in a variance-stabilized space via the asinh transform (Uniejewski
+et al. 2018): z = asinh((price - median) / MAD), inverted on prediction. Day-ahead
+prices spike and their lagged features are collinear, which makes a plain LASSO on
+raw prices converge poorly; the transform pulls the spikes toward a Gaussian scale,
+which both stabilizes the fit and improves accuracy.
 """
 
 import datetime as dt
@@ -39,8 +45,18 @@ def _prices_before(conn, date_str):
     return out
 
 
+def _robust_scale(values):
+    """Center and scale for the asinh transform: median and MAD of the training
+    prices. The scale is floored at 1.0 so a near-flat history can't blow it up."""
+    arr = np.asarray(values, dtype=float)
+    median = float(np.median(arr))
+    mad = float(np.median(np.abs(arr - median)))
+    return median, max(mad, 1.0)
+
+
 def _feature_row(prices, day):
-    """Feature vector for target `day` (a date), or None if any lag day is missing."""
+    """Feature vector for target `day` (a date), or None if any lag day is missing.
+    `prices` holds already-transformed price series."""
     feats = []
     for lag in _LAG_DAYS:
         lag_day = (day - dt.timedelta(days=lag)).isoformat()
@@ -58,20 +74,26 @@ def lear_forecast(conn, date_str):
     it. Returns [] when there is not enough history to train, so callers fall back to
     the naive forecast."""
     prices = _prices_before(conn, date_str)
+    if not prices:
+        return []
+
+    median, mad = _robust_scale([p for day in prices.values() for p in day])
+    tprices = {d: list(np.arcsinh((np.asarray(day) - median) / mad))
+               for d, day in prices.items()}
 
     X, ys = [], [[] for _ in range(HOURS)]
-    for d_str, day_prices in sorted(prices.items()):
-        row = _feature_row(prices, dt.date.fromisoformat(d_str))
+    for d_str in sorted(tprices):
+        row = _feature_row(tprices, dt.date.fromisoformat(d_str))
         if row is None:
             continue
         X.append(row)
         for h in range(HOURS):
-            ys[h].append(day_prices[h])
+            ys[h].append(tprices[d_str][h])
 
     if len(X) < _MIN_TRAIN_ROWS:
         return []
 
-    x_pred = _feature_row(prices, dt.date.fromisoformat(date_str))
+    x_pred = _feature_row(tprices, dt.date.fromisoformat(date_str))
     if x_pred is None:
         return []
 
@@ -79,7 +101,8 @@ def lear_forecast(conn, date_str):
     x_pred = np.asarray([x_pred], dtype=float)
     preds = []
     for h in range(HOURS):
-        model = make_pipeline(StandardScaler(), LassoCV(cv=3, max_iter=5000))
+        model = make_pipeline(StandardScaler(), LassoCV(cv=3, max_iter=50000))
         model.fit(X, np.asarray(ys[h], dtype=float))
-        preds.append(float(model.predict(x_pred)[0]))
+        z = float(model.predict(x_pred)[0])
+        preds.append(float(median + mad * np.sinh(z)))  # invert the asinh transform
     return preds
